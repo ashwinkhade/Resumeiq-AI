@@ -114,65 +114,18 @@ The API runs at `http://localhost:5000`. Health check: `GET /api/health`.
 
 ---
 
-## API reference (everything that exists today)
+## API overview
 
-All responses follow the same envelope:
-```json
-{ "success": true, "message": "...", "data": { ... } }
-```
-Authenticated routes require `Authorization: Bearer <access_token>`.
+The backend exposes a REST API covering five areas so far: authentication,
+student profile management, career readiness scoring, skill gap analysis,
+and the learning roadmap generator. All responses share a consistent JSON
+envelope (`success`, `message`, `data`), and protected routes require a
+JWT bearer token obtained at login.
 
-### Auth — `/api/auth`
-| Method | Path | Description |
-|---|---|---|
-| POST | `/register` | Create account `{email, password, full_name}` |
-| POST | `/login` | `{email, password}` → access + refresh tokens |
-| POST | `/refresh` | Requires refresh token → new access token |
-| POST | `/logout` | Logs the logout event server-side |
-| GET | `/me` | Current user + profile |
-| PUT | `/password` | `{current_password, new_password}` |
-
-### Profile — `/api/profile`
-| Method | Path | Description |
-|---|---|---|
-| GET | `` | Full profile incl. skills/projects/certs/internships |
-| PUT | `` | Update core fields (name, branch, CGPA, links, etc.) |
-| POST/PUT/DELETE | `/skills[/<id>]` | Manage skills |
-| POST/PUT/DELETE | `/projects[/<id>]` | Manage projects |
-| POST/PUT/DELETE | `/certifications[/<id>]` | Manage certifications |
-| POST/PUT/DELETE | `/internships[/<id>]` | Manage internships |
-
-### Career Score — `/api/score`
-| Method | Path | Description |
-|---|---|---|
-| GET | `` | Latest score (auto-calculates one if none exists) |
-| POST | `/recalculate` | Force a fresh calculation, saved as a new snapshot |
-| GET | `/history` | All past snapshots, oldest first |
-
-### Skill Gap — `/api/skills`
-| Method | Path | Description |
-|---|---|---|
-| GET | `/gap?top_n=5` | Existing/missing/recommended skills + coverage % |
-| GET | `/industry` | Full curated industry skill list |
-
-### Roadmap — `/api/roadmap`
-| Method | Path | Description |
-|---|---|---|
-| GET | `` | Active roadmap with milestones |
-| POST | `/generate` | Build a fresh 6-month roadmap from current skill gaps |
-| PUT | `/milestones/<id>` | Update status: `not_started`/`in_progress`/`completed` |
-
-### Try it
-```bash
-TOKEN=$(curl -s -X POST http://localhost:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"priya.sharma@example.com","password":"Student@123"}' \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['access_token'])")
-
-curl http://localhost:5000/api/score -H "Authorization: Bearer $TOKEN"
-curl http://localhost:5000/api/skills/gap -H "Authorization: Bearer $TOKEN"
-curl -X POST http://localhost:5000/api/roadmap/generate -H "Authorization: Bearer $TOKEN"
-```
+Endpoint-level details (exact paths, request bodies, status codes) aren't
+listed in this README — they're documented as docstrings directly in each
+file under `backend/app/routes/`, which is the authoritative source as the
+API evolves.
 
 ---
 
